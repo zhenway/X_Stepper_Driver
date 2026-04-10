@@ -106,30 +106,27 @@ class StepperMotor:
             sync)
         self.running = True
 
-    def set_position(self, speed_rpm, target_pos):
-        """位置模式 (0xFB)"""
-        direction = 0x01 if target_pos >= 0 else 0x00
-        pos = abs(int(target_pos))
-        
-        # 速度拆分
-        speed = abs(int(speed_rpm))
-        speed_bytes = [
-            speed & 0xFF, 
-            (speed >> 8) & 0xFF, 
-            (speed >> 16) & 0xFF, 
-            (speed >> 24) & 0xFF 
-        ]
-        
-        # 位置拆分 (4字节小端序)
-        pos_bytes = [
-            pos & 0xFF, 
-            (pos >> 8) & 0xFF, 
-            (pos >> 16) & 0xFF, 
-            (pos >> 24) & 0xFF 
-        ]
-        
-        mode = 0x00 # 位置模式
-        sync = 0x01 # 同步
-        
-        # 顺序：方向 + 速度(4) + 位置(4) + 模式 + 同步
-        self._send(CMD_POS, direction, *speed_bytes, *pos_bytes, mode, sync)
+    def set_position(self, speed, pos, mode=0x00, sync=0x00, direction=0x01):
+        """
+        直通限速位置模式 (X固件功能码 0xFB)
+        speed: 目标速度 (RPM)，如传入 1000
+        pos: 目标位置 (0.1°)，如传入 5000 代表 500.0°
+        """
+        # 速度单位是 0.1RPM，传入 RPM 需乘 10
+        speed_val = int(speed * 10)
+        pos_val = int(pos)
+
+        # 大端序拆字节，通过 _send 发送
+        self._send(
+            CMD_POS,
+            direction,
+            (speed_val >> 8) & 0xFF,  # 速度高字节
+            speed_val & 0xFF,          # 速度低字节
+            (pos_val >> 24) & 0xFF,    # 位置字节3
+            (pos_val >> 16) & 0xFF,    # 位置字节2
+            (pos_val >> 8) & 0xFF,     # 位置字节1
+            pos_val & 0xFF,            # 位置字节0
+            mode,
+            sync,
+        )
+

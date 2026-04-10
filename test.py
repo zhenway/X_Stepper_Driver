@@ -20,10 +20,12 @@ def main():
         time.sleep(1)
         
         
-        print("\n[测试] 速度模式运行...")
-        motor.set_velocity(5000)
-    
-        time.sleep(200)
+ #       print("\n[测试] 速度模式运行...")
+ #       motor.set_velocity(5000)
+#    
+ #       time.sleep(200)
+        print("\n[测试] 位置模式运行...")
+        motor.set_position(1000,300000)
         """
         # --- 新增：测试接收消息 ---
         print("\n[测试] 读取位置 (发送读取指令 0x36)...")
